@@ -155,7 +155,24 @@ class Hybrid_Providers_Vkontakte extends Hybrid_Provider_Model_OAuth2
 	}
 
     /**
-     * load the user contacts
+     * load the user friends
+     */
+    function getUserFriends($id) {
+        $params = array(
+            'user_id' => $id
+        );
+
+        $response = $this->api->api('https://api.vk.com/method/friends.get','GET',$params);
+
+        if(!$response || !count($response->response)){
+            return array();
+        }
+
+        return $response->response;
+    }
+
+    /**
+     * load the user audio
      */
     function getUserAudioById($id) {
         $params = array(
@@ -163,6 +180,10 @@ class Hybrid_Providers_Vkontakte extends Hybrid_Provider_Model_OAuth2
         );
 
         $response = $this->api->api('https://api.vk.com/method/audio.get','GET',$params);
+
+        if($response->error->error_code == 14) {
+            error_log(print_r($response->error, true));
+        }
 
         if(!$response || !count($response->response)){
             return array();
@@ -172,10 +193,10 @@ class Hybrid_Providers_Vkontakte extends Hybrid_Provider_Model_OAuth2
             $audio = array();
             $audio[] = $item->aid;
             $audio[] = $item->owner_id;
-            $audio[] = $item->artist;
-            $audio[] = $item->title;
+            $audio[] = str_replace(';', '', $item->artist);
+            $audio[] = str_replace(';', '', $item->title);
             $audio[] = $item->duration;
-            $audio[] = $item->url;
+            $audio[] = str_replace(';', '', $item->url);
             $audio[] = $item->lyrics_id;
             $audio[] = $item->genre;
             $audios[] = $audio;
